@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Analysis of Key Issues in India</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: A dashboard-style, thematic SPA. A main navigation bar allows users to select one of seven core topics. Within each topic's section, a tabbed sub-navigation lets users explore the eight analytical dimensions (Social, Political, etc.). This structure deconstructs the dense report into a clear, hierarchical, and intuitive user flow, prioritizing ease of exploration over mirroring the report's linear format. This design was chosen to make the complex, multi-faceted information digestible and to allow users to compare different dimensions of a single issue or the same dimension across different issues seamlessly. -->
+    <!-- Visualization & Content Choices: The application uses a mix of dynamic charts and text blocks to present information. For instance, 'Gender Equality' uses line and bar charts (Chart.js) to show trends and comparisons (Goal: Compare/Change). 'Exam Paper Leaks' uses an interactive timeline (HTML/CSS/JS) to show frequency (Goal: Organize). 'Water Crisis' uses an area chart to emphasize decline (Goal: Change). 'Mental Health' uses a doughnut chart to show the treatment gap (Goal: Inform/Proportions). 'Happiness Report' uses horizontal bar and radar charts for comparison (Goal: Compare). All visualizations are rendered on Canvas, adhering to the NO SVG/Mermaid constraint. This multi-modal approach was chosen to match the best visualization type to the data's story, enhancing user understanding and engagement within the designed thematic structure. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-bold text-xl text-purple-600">🇮🇳 India Insights</span>
+                </div>
+                <div class="hidden md:block">
+                    <div id="main-nav" class="ml-10 flex items-baseline space-x-4">
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <select id="mobile-nav" class="w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                    </select>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <div id="main-content">
+        </div>
+    </main>
+
+    <footer class="bg-white mt-12 py-6">
+        <div class="container mx-auto text-center text-gray-500">
+            <p>&copy; 2025 Interactive Report. All data synthesized from the source report.</p>
+        </div>
+    </footer>
+
+    <script>
+        const appData = {
+            "gender-equality": {
+                title: "Gender Equality: Is the workplace truly equal?",
+                dimensions: {
+                    social: {
+                        title: "Social Aspects",
+                        content: `
+                            <p class="mb-4">The pursuit of gender equality in the Indian workplace is a complex endeavor, marked by both notable progress and persistent deep-seated challenges. Despite India's improved ranking on the Gender Inequality Index (GII) from 122nd in 2021 to 108th in 2022, significant gender disparities continue to exist. This macro-level improvement contrasts sharply with ground realities. For instance, nearly one-third of women in India have reported experiencing physical or sexual violence. Traditional gender roles and occupational segregation further exacerbate inequalities. The overall increase in women's labor force participation is largely driven by rural women, but this positive trend is tempered by a pronounced digital divide in rural India.</p>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div class="content-card p-6">
+                                    <h3 class="font-semibold text-lg mb-2">Female Labour Force Participation Rate (FLFPR) Trend</h3>
+                                    <p class="text-sm text-gray-600 mb-4">Shows the percentage of working-age women who are employed or actively looking for work. The recent upward trend, especially in rural areas, is a key indicator of changing economic dynamics.</p>
+                                    <div class="chart-container h-64 sm:h-72"><canvas id="flfprChart"></canvas></div>
+                                </div>
+                                <div class="content-card p-6">
+                                    <h3 class="font-semibold text-lg mb-2">Worker Population Ratio (WPR) for Women</h3>
+                                    <p class="text-sm text-gray-600 mb-4">Represents the percentage of women in the population who are employed. The steady increase reflects greater economic engagement among women.</p>
+                                    <div class="chart-container h-64 sm:h-72"><canvas id="wprChart"></canvas></div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    political: {
+                        title: "Political Aspects",
+                        content: `
+                            <p class="mb-4">Political commitment is a crucial driver of gender equality. While women's representation in the Lok Sabha and Rajya Sabha has increased, it remains relatively low at around 14-17%. In contrast, Panchayati Raj Institutions (PRIs) have seen significant progress, with women comprising about 46% of elected representatives. A landmark legislative measure, the "Nari Shakti Vandan Adhiniyam," reserves one-third of seats for women in the Lok Sabha and State Assemblies, aiming to institutionalize their representation.</p>
+                            <div class="content-card p-6">
+                                <h3 class="font-semibold text-lg mb-2">Women's Political Representation (%)</h3>
+                                <p class="text-sm text-gray-600 mb-4">A comparison of female representation across different levels of government in India. The high representation in local bodies (PRIs) contrasts with the lower numbers at the national level.</p>
+                                <div class="chart-container"><canvas id="politicalRepChart"></canvas></div>
+                            </div>
+                        `
+                    },
+                    economical: {
+                        title: "Economical Aspects",
+                        content: `
+                            <p class="mb-4">The economic landscape is a mix of progress and persistent challenges. While female workforce participation is rising, significant gender pay gaps remain. Between 2017-18 and 2023-24, women's monthly earnings as regular workers saw a slight decrease in real terms. The gap is most pronounced for self-employed workers, where women earn only about a third of what men do. The economic burden of unpaid care work is another critical factor, with women in India spending an average of 7.2 hours on it daily compared to 2.8 hours for men.</p>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div class="stat-card p-4 rounded-lg">
+                                    <h4 class="font-bold text-3xl text-purple-700">~20%</h4>
+                                    <p class="text-sm text-gray-700">Global Gender Pay Gap</p>
+                                </div>
+                                <div class="stat-card p-4 rounded-lg">
+                                    <h4 class="font-bold text-3xl text-purple-700">7.2h</h4>
+                                    <p class="text-sm text-gray-700">Women's Daily Unpaid Work</p>
+                                </div>
+                                <div class="stat-card p-4 rounded-lg">
+                                    <h4 class="font-bold text-3xl text-purple-700">41.7%</h4>
+                                    <p class="text-sm text-gray-700">Female LFPR (2023-24)</p>
+                                </div>
+                            </div>
+                        `
+                    },
+                    legal: {
+                        title: "Legal Aspects",
+                        content: `
+                            <p class="mb-4">India has a robust legal framework for gender equality, rooted in constitutional guarantees (Articles 14, 15, 16). Key labor laws include:</p>
+                            <ul class="list-disc list-inside space-y-2">
+                                <li><b>The Equal Remuneration Act, 1976:</b> Mandates equal pay for equal work.</li>
+                                <li><b>The Maternity Benefit Act, 1961 (Amended 2017):</b> Extended paid maternity leave to 26 weeks.</li>
+                                <li><b>The POSH Act, 2013:</b> Mandates Internal Complaints Committees to address sexual harassment.</li>
+                                <li><b>The Code on Social Security, 2020:</b> Further extends benefits and allows night shifts with safety measures.</li>
+                            </ul>
+                            <p class="mt-4">Despite these progressive laws, a significant gap remains between policy intent and on-ground realities due to implementation challenges and deep-rooted social norms.</p>
+                        `
+                    },
+                     technological: {
+                        title: "Technological Aspects",
+                        content: `
+                            <p class="mb-4">Technology presents a dual reality for gender equality. A significant gender digital divide persists, with only one in three women having used the internet compared to more than half of men. This disparity, especially stark in rural India, limits access to digital opportunities. The rise of remote work has often led to a "double shift" for women, intensifying the burden of unpaid domestic work. However, technology also offers opportunities. STEM education can enable women to keep pace with the evolving labor market, offering higher earning potential. Government initiatives are actively promoting STEM among girls to bridge this gap.</p>
+                        `
+                    },
+                    historical: {
+                        title: "Historical Aspects",
+                        content: `
+                            <p class="mb-4">The historical trajectory of women's workforce participation in India is complex. The female labour force participation rate (FLFPR) was 24.1% in 1955, rose to 33% by 1972, but then declined to a low of 23% in 2017, despite economic growth and increased education. This paradox highlights the influence of conservative social norms. However, the last six years have seen a notable rebound to 41.7% (2023-24). Historically, women's status declined in the post-Vedic period, with discrimination in education and rights. The post-independence Constitution and subsequent labor laws marked a significant legislative effort to provide safeguards and ensure equality.</p>
+                        `
+                    },
+                    international: {
+                        title: "International Aspects",
+                        content: `
+                            <p class="mb-4">Gender equality is a global challenge. Globally, women are paid about 20% less than men and are overrepresented in the informal sector. India is a signatory to key international conventions like CEDAW and several ILO conventions, demonstrating a formal commitment to global standards. A comparison of female labor force participation rates shows India (41.7%) lagging behind the OECD average (50.9%) but ahead of some Southern European countries. Nordic countries, with high participation rates, offer models for combining employment with strong social support systems. International organizations like UN Women are active in India, promoting economic empowerment and gender-responsive policies.</p>
+                        `
+                    },
+                    religious: {
+                        title: "Religious Aspects",
+                        content: `
+                            <p class="mb-4">Religious beliefs play a complex role in shaping gender dynamics. Some studies suggest that certain religions may reinforce traditional gender-based divisions of labor, while others show more equality. Workforce participation also varies across religious communities. According to the 2011 census, Muslim women's participation was less than 15%, significantly lower than Hindu (27%), Buddhist (33%), and Christian (31%) women. However, recent data shows a notable increase in Muslim women's participation. Higher literacy levels among certain communities, like Christians, are linked to higher female labor force participation. Implicit religious or cultural opposition can also act as a barrier to women's employment.</p>
+                        `
+                    }
+                },
+                chartData: {
+                    flfpr: {
+                        labels: ['2019-20', '2020-21', '2021-22', '2022-23', '2023-24'],
+                        data: [23.3, 30.0, 32.8, 37.0, 41.7]
+                    },
+                    wpr: {
+                        labels: ['2017-18', '2018-19', '2019-20', '2020-21', '2021-22', '2022-23', '2023-24'],
+                        data: [22.0, 22.8, 24.5, 28.7, 31.4, 35.9, 40.3]
+                    },
+                    politicalRep: {
+                        labels: ['Lok Sabha', 'Rajya Sabha', 'Panchayati Raj (PRIs)'],
+                        data: [14, 17, 46]
+                    }
+                }
+            },
+            "exam-leaks": {
+                title: "Exam Paper Leaks: Restoring Trust in the Education System",
+                dimensions: {
+                    social: {
+                        title: "Social Aspects",
+                        content: `
+                            <p class="mb-4">Exam paper leaks have profound social ramifications, causing widespread anxiety and a deep sense of injustice among students. This erodes public trust in the education system, devaluing academic credentials. For many from disadvantaged backgrounds, exams are a pathway to social mobility; leaks impose immense financial and emotional strain, exacerbating existing inequalities. The phenomenon is often linked to broader societal corruption involving organized crime and insiders, highlighting a systemic breakdown of ethical principles.</p>
+                        `
+                    },
+                    economical: {
+                        title: "Economical Aspects",
+                        content: `
+                            <p class="mb-4">The economic consequences are substantial. Re-conducting exams imposes a huge financial burden on the government and students. Over 50 documented leaks since 2019 have affected more than 15 million job seekers, exacerbating youth unemployment (15.3% in May 2025). A "hidden economy" has also emerged around exam fees, with top exams generating over ₹1000 crore annually, often without refunds for cancellations. This creates a market distortion where illicit gains are made by exploiting systemic vulnerabilities.</p>
+                             <div class="grid md:grid-cols-3 gap-4">
+                                <div class="stat-card p-4 rounded-lg">
+                                    <h4 class="font-bold text-3xl text-purple-700">15M+</h4>
+                                    <p class="text-sm text-gray-700">Job Seekers Affected (since 2019)</p>
+                                </div>
+                                <div class="stat-card p-4 rounded-lg">
+                                    <h4 class="font-bold text-3xl text-purple-700">300k+</h4>
+                                    <p class="text-sm text-gray-700">Govt. Positions Delayed (2019-24)</p>
+                                </div>
+                                <div class="stat-card p-4 rounded-lg">
+                                    <h4 class="font-bold text-3xl text-purple-700">15.3%</h4>
+                                    <p class="text-sm text-gray-700">Youth Unemployment Rate (May 2025)</p>
+                                </div>
+                            </div>
+                        `
+                    },
+                    historical: {
+                        title: "Historical Aspects",
+                        content: `
+                            <p class="mb-4">Paper leaks are a long-standing issue in India, not a new phenomenon. The timeline below highlights some of the major incidents over the past decade, showing the persistent and widespread nature of this systemic problem across various states and examination bodies. The methods have evolved from manual tampering to sophisticated digital fraud using platforms like WhatsApp and the dark web.</p>
+                            <div class="timeline">
+                                <div class="timeline-container left">
+                                    <div class="timeline-content">
+                                        <h2 class="font-bold">2015: AIPMT</h2>
+                                        <p class="text-sm">Answer keys circulated via electronic devices, affecting 6.3 lakh students. Supreme Court ordered a re-exam.</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-container right">
+                                    <div class="timeline-content">
+                                        <h2 class="font-bold">2018: CBSE Boards</h2>
+                                        <p class="text-sm">Class 10 Maths & Class 12 Economics papers leaked on WhatsApp, leading to cancellations.</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-container left">
+                                    <div class="timeline-content">
+                                        <h2 class="font-bold">2021: REET Exam</h2>
+                                        <p class="text-sm">Paper leaked before the exam in Rajasthan, involving large-scale cheating and impersonation.</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-container right">
+                                    <div class="timeline-content">
+                                        <h2 class="font-bold">2024: NEET-UG & UGC-NET</h2>
+                                        <p class="text-sm">Massive leaks affecting 24 lakh (NEET) and 9 lakh (NET) candidates, leading to nationwide protests and CBI probes.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    political: {
+                        title: "Political Aspects",
+                        content: `
+                            <p class="mb-4">The political response has included the Public Examinations (Prevention of Unfair Means) Act, 2024, which enforces strict penalties, including imprisonment and hefty fines. The issue has also become a point of political contention, with opposition parties framing it as a "systematic failure" of governance. The recurring incidents raise fundamental questions about the integrity of recruitment processes and impact India's international reputation.</p>
+                        `
+                    },
+                    legal: {
+                        title: "Legal Aspects",
+                        content: `
+                            <p class="mb-4">The Public Examinations (Prevention of Unfair Means) Act, 2024, is a specialized central law to tackle this issue. It makes offenses cognizable, non-bailable, and non-compoundable. The Act aims to fill the gap left by general laws like the IPC and IT Act, which were not designed for examination-related offenses. Legally, paper leaks also violate fundamental rights like the Right to Equality (Article 14) by compromising merit-based opportunities. However, challenges in enforcement and prosecution persist.</p>
+                        `
+                    },
+                    technological: {
+                        title: "Technological Aspects",
+                        content: `
+                            <p class="mb-4">Technology is a double-edged sword. While digital platforms like WhatsApp and the dark web facilitate leaks, technology also offers solutions. Proposed measures include computer-adaptive testing, biometric verification, real-time surveillance, and even blockchain for secure record-keeping. AI-powered proctoring and psychometric analysis can also detect anomalies. However, the digital divide, high costs, and skill gaps pose significant challenges to widespread implementation.</p>
+                        `
+                    },
+                    international: {
+                        title: "International Aspects",
+                        content: `
+                            <p class="mb-4">Academic dishonesty is a global challenge, with over 60% of university students worldwide admitting to some form of cheating. International best practices in exam security offer valuable lessons, including comprehensive exam management systems, adversarial testing, and retiring questions from banks. The recurring leaks in India can affect the global recognition of its degrees and the employability of its graduates abroad, impacting the nation's soft power.</p>
+                        `
+                    },
+                    religious: {
+                        title: "Religious Aspects",
+                        content: `
+                            <p class="mb-4">The issue of paper leaks presents a significant challenge to the ethical values of honesty and integrity that are central to India's diverse religious traditions. Religious education is seen as a potential tool to instill moral values and foster academic integrity. However, studies show that religiosity alone may not be enough to prevent cheating when faced with intense competition and systemic pressures. The crisis highlights a societal disconnect between professed moral principles and actual behavior.</p>
+                        `
+                    }
+                }
+            },
+            "water-crisis": {
+                title: "Water Crisis: A Global Challenge from Cape Town to Bangalore",
+                dimensions: {
+                    social: {
+                        title: "Social Aspects",
+                        content: `
+                            <p class="mb-4">The global water crisis has severe social impacts. Lack of access to clean water causes numerous waterborne diseases, leading to approximately 200,000 deaths annually in India alone. The burden of water collection disproportionately falls on women and girls, limiting their educational and economic opportunities. Water scarcity also fuels social tensions, conflicts, and internal migration, as people move in search of water and livelihoods, straining urban infrastructure and exacerbating inequalities.</p>
+                        `
+                    },
+                    economical: {
+                        title: "Economical Aspects",
+                        content: `
+                            <p class="mb-4">The economic ramifications are staggering. The water crisis is projected to cost India 14.34% of its GDP by 2050. It disrupts key sectors like agriculture, which faces crop failures, and manufacturing, which experiences shutdowns. India faces a $100 billion funding gap in water infrastructure over the next decade. The crisis also directly impacts livelihoods, pushing farming families into debt and poverty. This highlights that water security is a fundamental economic imperative.</p>
+                             <div class="grid md:grid-cols-3 gap-4">
+                                <div class="stat-card p-4 rounded-lg">
+                                    <h4 class="font-bold text-3xl text-purple-700">14.34%</h4>
+                                    <p class="text-sm text-gray-700">Projected GDP Loss by 2050</p>
+                                </div>
+                                <div class="stat-card p-4 rounded-lg">
+                                    <h4 class="font-bold text-3xl text-purple-700">$100B</h4>
+                                    <p class="text-sm text-gray-700">Water Infrastructure Funding Gap</p>
+                                </div>
+                                <div class="stat-card p-4 rounded-lg">
+                                    <h4 class="font-bold text-3xl text-purple-700">200k</h4>
+                                    <p class="text-sm text-gray-700">Annual Deaths in India</p>
+                                </div>
+                            </div>
+                        `
+                    },
+                    historical: {
+                        title: "Historical Aspects",
+                        content: `
+                            <p class="mb-4">India has a rich history of water management, from the advanced drainage systems of the Indus Valley Civilization to the irrigation tanks of medieval dynasties. However, the country has also experienced a drastic decline in per capita water availability since independence, plummeting by 75% from 6,042 cubic meters in 1947 to 1,486 cubic meters in 2021. This historical trend signifies a deepening crisis, moving India from a water-stressed to a water-scarce nation.</p>
+                            <div class="content-card p-6">
+                                <h3 class="font-semibold text-lg mb-2">Decline in Per Capita Water Availability in India (m³)</h3>
+                                <p class="text-sm text-gray-600 mb-4">This chart illustrates the dramatic drop in available water per person since 1947, highlighting the growing pressure on India's water resources due to population growth and other factors.</p>
+                                <div class="chart-container"><canvas id="waterAvailabilityChart"></canvas></div>
+                            </div>
+                        `
+                    },
+                    political: {
+                        title: "Political Aspects",
+                        content: `
+                            <p class="mb-4">Water is a State subject in India's federal structure, often leading to inter-state disputes over transboundary rivers. Policy formulation faces challenges, with the National Water Policy (NWP) undergoing revisions to address contemporary issues. The government has launched significant national initiatives like the Jal Jeevan Mission (JJM) and AMRUT, demonstrating a political commitment to addressing water access with massive financial outlays. However, a "policy-practice gap" persists due to political unwillingness and weak enforcement.</p>
+                        `
+                    },
+                    legal: {
+                        title: "Legal Aspects",
+                        content: `
+                            <p class="mb-4">The legal framework is shaped by the constitutional designation of water as a State subject. Key laws include the National Water Policy, the Inter-State River Water Disputes Act, 1956, and the Water (Prevention and Control of Pollution) Act, 1974. In response to crises, local bodies like Bangalore's BWSSB have implemented stringent regulations. The legal discourse is also evolving around water rights and pricing, with a debate over treating water as an "economic good" versus a "free good," which raises concerns about equitable access for the poor.</p>
+                        `
+                    },
+                    technological: {
+                        title: "Technological Aspects",
+                        content: `
+                            <p class="mb-4">Technology is crucial for addressing the water crisis. Smart Water Management systems using IoT and AI are being deployed for leak detection, quality monitoring, and demand forecasting. Water conservation technologies like rainwater harvesting and wastewater reuse are gaining traction. Desalination plants are also a growing solution. However, widespread adoption is hindered by high costs, skill gaps, and connectivity issues, particularly in rural areas.</p>
+                        `
+                    },
+                     international: {
+                        title: "International Aspects",
+                        content: `
+                            <p class="mb-4">The water crisis is a global phenomenon, with nearly 703 million people worldwide lacking access to water. By 2030, almost half the world's population is expected to live in high water-stress areas. The management of transboundary water resources is a critical international issue. Lessons from global strategies, like Cape Town's "Day Zero" aversion and the UK's expertise in smart metering, offer valuable insights for India. Climate change is a major global driver, with melting Himalayan glaciers affecting water supplies for nearly two billion people across several nations.</p>
+                            <div class="content-card p-6">
+                                <h3 class="font-semibold text-lg mb-2">India's Population vs. Water Resources</h3>
+                                <p class="text-sm text-gray-600 mb-4">This chart starkly visualizes the mismatch between India's share of the global population and its share of the world's freshwater resources, a key driver of its water stress.</p>
+                                <div class="chart-container h-64 sm:h-72"><canvas id="waterShareChart"></canvas></div>
+                            </div>
+                        `
+                    },
+                    religious: {
+                        title: "Religious Aspects",
+                        content: `
+                            <p class="mb-4">Water holds profound spiritual significance in India's religions, providing a powerful foundation for conservation. Hinduism reveres rivers like the Ganges as sacred purifiers. Islamic ethics stress water stewardship, with the Quran and Hadith emphasizing conservation. Jainism's principle of *ahimsa* (non-violence) and Buddhism's emphasis on interdependence also encourage sustainable living. Historically, religious institutions played a key role in water management, a precedent that can be leveraged for modern conservation efforts.</p>
+                        `
+                    }
+                },
+                chartData: {
+                    availability: {
+                        labels: ['1947', '1951', '1991', '2001', '2011', '2021'],
+                        data: [6042, 5177, 2209, 1816, 1545, 1486]
+                    },
+                    share: {
+                        labels: ["India's Share of World Population", "India's Share of World's Water Resources", "Rest of World"],
+                        data: [18, 4, 78]
+                    }
+                }
+            },
+            "mental-health": {
+                title: "Mental Health Taboo in India: Breaking the Silence",
+                dimensions: {
+                    social: {
+                        title: "Social Aspects",
+                        content: `
+                            <p class="mb-4">India faces a significant mental health crisis, with nearly 15% of adults suffering from some form of mental illness. A staggering treatment gap exists, estimated at 85% for common mental disorders, largely due to the pervasive stigma. This "taboo" discourages help-seeking, with less than 30 million out of 150 million in need actually seeking care. There are also notable gender and rural-urban disparities, with women experiencing more stigma and rural regions facing a severe shortage of professionals and facilities.</p>
+                             <div class="content-card p-6">
+                                <h3 class="font-semibold text-lg mb-2">The Mental Health Treatment Gap in India</h3>
+                                <p class="text-sm text-gray-600 mb-4">This visualization highlights the alarming percentage of individuals with common mental disorders in India who do not receive any form of treatment, primarily due to stigma and lack of access.</p>
+                                <div class="chart-container h-64 sm:h-72"><canvas id="treatmentGapChart"></canvas></div>
+                            </div>
+                        `
+                    },
+                    economical: {
+                        title: "Economical Aspects",
+                        content: `
+                            <p class="mb-4">The economic burden of mental health is substantial, projected to cost the Indian economy approximately USD 1.03 trillion between 2012 and 2030. Untreated conditions lead to significant productivity loss, absenteeism, and increased healthcare costs. Despite this, investment in mental health infrastructure remains insufficient. The economic implications of AI-induced job displacement also intersect with mental health, as the fear of replacement can heighten anxiety and depression.</p>
+                            <div class="stat-card p-4 rounded-lg">
+                                <h4 class="font-bold text-3xl text-purple-700">$1.03T</h4>
+                                <p class="text-sm text-gray-700">Projected Economic Cost (2012-2030)</p>
+                            </div>
+                        `
+                    },
+                    legal: {
+                        title: "Legal Aspects",
+                        content: `
+                            <p class="mb-4">The legal framework has seen significant reforms, led by the Mental Healthcare Act, 2017 (MHCA). This rights-based legislation ensures access to care and protects dignity. A key provision is the decriminalization of suicide attempts, recognizing them as a manifestation of severe stress. The Act aligns India's laws with international standards like the UNCRPD. However, implementation challenges persist due to stigma and a lack of infrastructure and trained professionals.</p>
+                        `
+                    },
+                    political: {
+                        title: "Political Aspects",
+                        content: `
+                            <p class="mb-4">The government has shown sustained political commitment through policies like the National Mental Health Programme (NMHP) and the landmark Mental Healthcare Act, 2017. To improve accessibility, digital initiatives like the National Tele Mental Health Programme (Tele MANAS) have been launched, providing 24x7 tele-mental health services. Despite these ambitions, budget allocation and funding gaps remain a significant challenge, hindering the expansion of services.</p>
+                        `
+                    },
+                    historical: {
+                        title: "Historical Aspects",
+                        content: `
+                            <p class="mb-4">The understanding of mental health in India has evolved over centuries. Ancient texts linked mental health to mythological and religious themes. The colonial period marked a shift to institutionalized care, establishing "madhouses" that separated the mentally ill from society, contributing to stigma. In the post-independence era, there has been a global shift towards community-based services, with India transitioning to models like the District Mental Health Programmes (DMHPs).</p>
+                        `
+                    },
+                    international: {
+                        title: "International Aspects",
+                        content: `
+                            <p class="mb-4">Mental health is a global concern. India's situation is often compared to global trends, revealing disparities. India ranks 127th on the Global Gender Gap Index, and this inequity significantly impacts women's mental health. International collaborations and frameworks like the UNCRPD are crucial in shaping India's strategies. The integration of international best practices, such as task-shifting models and digital technologies, are key to addressing the vast treatment gap.</p>
+                        `
+                    },
+                    technological: {
+                        title: "Technological Aspects",
+                        content: `
+                            <p class="mb-4">Technology is a crucial tool for enhancing mental healthcare. Digital interventions like telemedicine and mobile apps are bridging the access gap. India's digital mental health market is projected to grow significantly. AI holds potential for improving diagnosis and personalizing treatment, but faces ethical challenges like data privacy and algorithmic bias. A major hurdle is the digital divide, which risks widening healthcare inequities if not addressed through investment in infrastructure and digital literacy.</p>
+                        `
+                    },
+                    religious: {
+                        title: "Religious Aspects",
+                        content: `
+                            <p class="mb-4">Religion and spirituality play a significant role in mental health support. Many people turn to religious centers for healing, which can provide a supportive environment. Indian religious traditions offer various practices for mental well-being, such as meditation and yoga. Faith can serve as a protective factor and a coping mechanism. Religious communities are also increasingly engaging in mental health initiatives, moving beyond traditional healing to more structured support systems.</p>
+                        `
+                    }
+                },
+                chartData: {
+                    treatmentGap: {
+                        labels: ['Receiving Treatment', 'Not Receiving Treatment'],
+                        data: [15, 85]
+                    }
+                }
+            },
+            "climate-resilience": {
+                title: "Uttarkashi Disaster & Climate Resilience",
+                dimensions: {
+                    social: {
+                        title: "Social Aspects",
+                        content: `
+                            <p class="mb-4">Disasters like the Uttarkashi tunnel collapse and flash floods have profound social impacts, causing psychological trauma, loss of life, and long-term disabilities. Flash floods and landslides have claimed 705 lives in Uttarakhand over the past decade. These events lead to displacement, livelihood disruptions, and an erosion of public trust in infrastructure projects and governance, often sparking protests. The human cost highlights the need for comprehensive disaster preparedness and mental health support.</p>
+                        `
+                    },
+                    political: {
+                        title: "Political Aspects",
+                        content: `
+                            <p class="mb-4">The political response involves immediate relief efforts and long-term policy challenges. While governments engage in rapid response, recurring disasters point to systemic governance failures, particularly regarding unplanned development and river encroachments. There is a tension between economic priorities (tourism, infrastructure) and environmental sustainability. India has a comprehensive Disaster Management Act, 2005, but a gap often exists between policy intent and implementation on the ground.</p>
+                        `
+                    },
+                    historical: {
+                        title: "Historical Aspects",
+                        content: `
+                            <p class="mb-4">The Himalayan region has a long history of natural disasters. Traditional knowledge systems, such as building 'naulas' (wells) and terracing, have historically played a crucial role in resilience. However, this wisdom is eroding. Infrastructure development, including the Char Dham road project and hydroelectric projects, has often disregarded the region's fragility, increasing vulnerability. The 2013 Kedarnath disaster served as a "warning bell" against the pursued economic growth model.</p>
+                        `
+                    },
+                    international: {
+                        title: "International Aspects",
+                        content: `
+                            <p class="mb-4">The Himalayas, the "Third Pole," are crucial for nearly two billion people downstream and are highly vulnerable to global climate change. India is a signatory to international frameworks like the Sendai Framework for Disaster Risk Reduction, committing to a global effort to reduce disaster risk. Comparative analysis of strategies from countries like Japan and Singapore offers valuable lessons in building economic, social, and governance resilience.</p>
+                        `
+                    },
+                    legal: {
+                        title: "Legal Aspects",
+                        content: `
+                            <p class="mb-4">The Disaster Management Act, 2005, provides the primary legal framework. For infrastructure projects, Environmental Impact Assessment (EIA) is legally mandated, but critics argue the process has flaws in the fragile Himalayan region. Compensation laws exist for disaster victims, but the relief provided is often deemed inadequate, leading to public dissatisfaction and calls for greater accountability.</p>
+                        `
+                    },
+                    technological: {
+                        title: "Technological Aspects",
+                        content: `
+                            <p class="mb-4">Technology is crucial for both response and mitigation. In the Uttarkashi rescue, advanced drilling machines, endoscopic cameras, and robots were deployed. For resilience, early warning systems using X-band radars, AI-based nowcasting, and satellite monitoring are vital. Resilient infrastructure design also incorporates geotechnical engineering and computer simulations to safeguard against landslides. However, high costs and skill gaps can hinder adoption.</p>
+                        `
+                    },
+                    economical: {
+                        title: "Economical Aspects",
+                        content: `
+                            <p class="mb-4">Climate-induced disasters have significant economic ramifications, leading to project delays, financial losses, and huge cost overruns for reconstruction. The 2013 Uttarakhand floods caused tourism revenue losses of over Rs. 120 billion. Disasters also lead to job losses and impact investment confidence. The economic growth model, if not environmentally sustainable, can lead to greater long-term economic costs from disasters, highlighting the need to invest in resilience.</p>
+                        `
+                    },
+                    religious: {
+                        title: "Religious Aspects",
+                        content: `
+                            <p class="mb-4">Religious beliefs shape how Himalayan communities perceive and cope with disasters. The region is revered as "Dev Bhoomi" (Land of Gods), and some interpret disasters as a consequence of human actions disrespecting this sacred ecosystem. Religion serves as a crucial coping mechanism, providing hope and psychological relief. Religious institutions often act as vital centers for support and aid during emergencies, highlighting their potential as key partners in disaster management.</p>
+                        `
+                    }
+                }
+            },
+            "happiness-report": {
+                title: "World Happiness Report 2024",
+                dimensions: {
+                    social: {
+                        title: "Social Aspects",
+                        content: `
+                            <p class="mb-4">The World Happiness Report 2024 underscores the importance of social factors. Finland, ranked happiest for the seventh year, excels in communal support and trust. However, global happiness inequality has increased by over 20% in the last dozen years. A concerning trend is the decline in perceived social support among young adults. India ranks 126th out of 143 countries, behind neighbors like China and Pakistan. While India has high social support from family structures, it scores low on perceived freedom to make life choices.</p>
+                        `
+                    },
+                    economical: {
+                        title: "Economical Aspects",
+                        content: `
+                            <p class="mb-4">Economic factors, especially GDP per capita, are significant determinants of happiness. There is a strong positive correlation between GDP and happiness. However, the relationship is complex and influenced by income inequality. In India, increasing GDP has paradoxically been linked with diminishing happiness, possibly due to rising inequality and unemployment. While India's economy is growing, its happiness index remains below the world average, highlighting that economic growth must be equitable to enhance well-being.</p>
+                        `
+                    },
+                    political: {
+                        title: "Political Aspects",
+                        content: `
+                            <p class="mb-4">The report serves as a resource for policymakers, emphasizing the link between good governance and well-being. Countries with higher happiness tend to have lower perceived corruption and higher trust in institutions. The UN has encouraged member countries to measure happiness to guide public policy. Political stability and effective crisis management are also crucial, as seen in the resilience of communities with high trust during the COVID-19 pandemic, and the low happiness in conflict-ridden nations like Afghanistan.</p>
+                        `
+                    },
+                    international: {
+                        title: "International Aspects",
+                        content: `
+                            <p class="mb-4">The report is an international effort using Gallup World Poll data from over 160 countries. It reveals consistent patterns, with Nordic nations topping the ranks and conflict-ridden nations at the bottom. Global events like pandemics and conflicts have a discernible impact on happiness. The report's international rankings provide a global benchmark for national well-being and highlight the varying success of countries in fostering happiness.</p>
+                            <div class="grid md:grid-cols-2 gap-4">
+                               <div class="content-card p-6">
+                                    <h3 class="font-semibold text-lg mb-2">Happiness Rankings (South Asia)</h3>
+                                    <p class="text-sm text-gray-600 mb-4">A comparison of India's 2024 World Happiness Report ranking against its neighboring countries, providing regional context for its performance.</p>
+                                    <div class="chart-container"><canvas id="happinessRankingChart"></canvas></div>
+                                </div>
+                                <div class="content-card p-6">
+                                    <h3 class="font-semibold text-lg mb-2">Factors Explaining India's Happiness Score</h3>
+                                    <p class="text-sm text-gray-600 mb-4">This radar chart shows how India performs on the six key variables used to explain happiness levels, highlighting areas of relative strength (like social support) and weakness (like freedom).</p>
+                                    <div class="chart-container"><canvas id="happinessFactorsChart"></canvas></div>
+                                </div>
+                            </div>
+                        `
+                    },
+                    historical: {
+                        title: "Historical Aspects",
+                        content: `
+                            <p class="mb-4">The study of happiness as a policy-relevant concept is relatively recent, with the first World Happiness Report released in 2012. Historical trends show varying patterns across generations and regions. In the US, happiness has fallen for the young, while it has increased in Central and Eastern Europe. The income-happiness correlation has also evolved, increasing in the USA and Europe since the 1970s alongside rising inequality, while decreasing in Latin America as inequality fell.</p>
+                        `
+                    },
+                    legal: {
+                        title: "Legal Aspects",
+                        content: `
+                            <p class="mb-4">Legal aspects are implicitly linked to happiness through factors like freedom and corruption. The Universal Declaration of Human Rights provides a foundation for well-being. A legal system that protects individual freedoms and ensures transparency contributes to higher happiness. Conversely, corruption, often linked to a lack of legal enforcement, is negatively correlated. Social security laws, recognized as a basic human right, also contribute to economic security and happiness.</p>
+                        `
+                    },
+                    technological: {
+                        title: "Technological Aspects",
+                        content: `
+                            <p class="mb-4">Technology has a complex impact on happiness. Digital tech can promote well-being by enhancing connections and economic opportunities, but it also presents challenges. Social media can lead to anxiety and depression, and over-reliance on digital communication can erode interpersonal skills. However, digital tools like mental health apps and tele-counseling offer new avenues for enhancing well-being and expanding access to support services.</p>
+                        `
+                    },
+                    religious: {
+                        title: "Religious Aspects",
+                        content: `
+                            <p class="mb-4">Religion and spirituality are significant determinants of happiness in India. Eastern cultures often promote contentment through spirituality. Studies show a positive association between religiosity and well-being. Religious communities provide strong social and familial ties that act as a buffer during hardship. However, religious discrimination and conflict can negatively impact life satisfaction, highlighting that while personal faith is a source of resilience, societal harmony is crucial for overall happiness.</p>
+                        `
+                    }
+                },
+                chartData: {
+                    rankings: {
+                        labels: ['China', 'Nepal', 'Pakistan', 'Myanmar', 'India', 'Sri Lanka', 'Afghanistan'],
+                        data: [60, 93, 108, 118, 126, 128, 143]
+                    },
+                    factors: {
+                        labels: ['GDP per Capita', 'Social Support', 'Healthy Life Expectancy', 'Freedom', 'Generosity', 'Perceptions of Corruption'],
+                        data: [7.9, 8.0, 6.5, 5.8, 6.2, 2.5] // Scaled 1-10 for visualization
+                    }
+                }
+            },
+            "pen-vs-keyboard": {
+                title: "A Pen is Mightier Than the Keyboard",
+                dimensions: {
+                    social: {
+                        title: "Social Aspects",
+                        content: `
+                            <p class="mb-4">The choice between a pen and a keyboard has significant social implications. Handwriting engages more complex motor skills and is a powerful medium for personal expression, often conveying intimacy and care in a way digital text cannot. A handwritten note signals an investment of time and effort. In contrast, digital communication, while efficient, often lacks non-verbal cues, leading to potential misunderstandings. Over-reliance on digital tools may diminish face-to-face interactions and weaken relational bonds, potentially eroding empathy and emotional intelligence.</p>
+                        `
+                    },
+                    technological: {
+                        title: "Technological Aspects",
+                        content: `
+                            <p class="mb-4">The technology of writing has evolved from pens and typewriters to computers and mobile phones with advanced keyboards. Digital tools offer numerous accessibility features like voice typing, screen readers, and smart compose, promoting inclusivity. However, the rise of AI writing tools raises concerns about "mental passivity." A study from MIT found that frequent use of ChatGPT reduced memory retention and critical thinking, suggesting that over-reliance on AI could erode fundamental human cognitive skills.</p>
+                        `
+                    },
+                    legal: {
+                        title: "Legal Aspects",
+                        content: `
+                            <p class="mb-4">The legal validity of handwritten versus digital signatures is a critical issue. In India, the Information Technology Act, 2000, generally treats electronic signatures as equivalent to physical ones. India recognizes two main types: Aadhaar/PAN-based e-signatures and certificate-based digital signatures issued by licensed authorities. This legal framework is crucial for digital transactions. However, certain documents like wills, trust deeds, and real estate contracts still legally require traditional handwritten signatures.</p>
+                        `
+                    },
+                    historical: {
+                        title: "Historical Aspects",
+                        content: `
+                            <p class="mb-4">The history of writing tools shows a continuous evolution towards efficiency. From reed pens and quills to the ballpoint pen (1888) and the typewriter (1868), innovation has aimed to make writing cleaner and faster. The late 20th century saw the shift to computers, and more recently, advanced speech recognition software. This technological progression mirrors the impact of the printing press, which democratized information access and increased literacy, much like the internet has in the modern era.</p>
+                        `
+                    },
+                    international: {
+                        title: "International Aspects",
+                        content: `
+                            <p class="mb-4">Globally, educational systems are grappling with how to balance traditional and digital writing. The digital divide in literacy and technology access remains a significant international concern, particularly in the Global South, where basic digital skills are lacking. International comparisons in digital reading performance show that strong foundational reading skills are transferable to digital environments, but access to technology and informal learning at home play a crucial role.</p>
+                        `
+                    },
+                    political: {
+                        title: "Political Aspects",
+                        content: `
+                            <p class="mb-4">Writing tools have political implications tied to freedom of expression and civic engagement. Historically, writing centralized political power. The printing press and later the internet democratized information access, fostering political participation. However, the digital landscape introduces challenges. Private social media platforms can regulate speech, raising censorship concerns. While digital tools facilitate rapid organization, the personal, sincere nature of a handwritten letter can still have a unique impact in "gentle protest" and influencing decision-makers.</p>
+                        `
+                    },
+                    economical: {
+                        title: "Economical Aspects",
+                        content: `
+                            <p class="mb-4">The economic implications of writing tools are tied to productivity and skills. The typewriter revolutionized office work, and computers further accelerated efficiency. In the digital economy, skills matter. A study found that digital skills deliver an average 17% wage increase for workers in India. However, the shift to digital also raises concerns. The decline of handwriting skills could impact industries that value them. Furthermore, the cost of technology and the digital divide create economic barriers for many, affecting their ability to participate fully in the modern economy.</p>
+                        `
+                    },
+                    religious: {
+                        title: "Religious Aspects",
+                        content: `
+                            <p class="mb-4">Writing tools have profoundly impacted the dissemination and practice of religion. Historically, handwritten scriptures were rare and valuable, preserved by scribes. The printing press made religious texts like the Bible widely accessible, fueling movements like the Protestant Reformation. In the digital age, keyboards and the internet have further democratized access. Religious texts, sermons, and discussions are available online, fostering global communities. However, this also brings challenges, such as the spread of misinformation and the need for digital literacy to critically evaluate religious content found online.</p>
+                        `
+                    }
+                }
+            }
+        };
+
+        let activeTopic = 'gender-equality';
+        let activeDimension = 'social';
+        let charts = {};
+
+        function destroyCharts() {
+            Object.values(charts).forEach(chart => chart.destroy());
+            charts = {};
+        }
+
+        function renderContent() {
+            const topicData = appData[activeTopic];
+            const dimensionData = topicData.dimensions[activeDimension];
+
+            const contentArea = document.getElementById('main-content');
+            
+            let tabsHtml = '<div class="flex flex-wrap gap-2 mb-6">';
+            Object.keys(topicData.dimensions).forEach(key => {
+                const dim = topicData.dimensions[key];
+                tabsHtml += `<button onclick="handleTabClick('${key}')" class="tab-button px-4 py-2 text-sm font-medium rounded-full ${key === activeDimension ? 'active' : 'bg-white'}">${dim.title}</button>`;
+            });
+            tabsHtml += '</div>';
+
+            let contentHtml = `
+                <div class="content-card p-6 md:p-8">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-2 text-gray-800">${topicData.title}</h2>
+                    <h3 class="text-xl font-semibold mb-6 text-purple-600">${dimensionData.title}</h3>
+                    <div class="prose max-w-none">${dimensionData.content}</div>
+                </div>
+            `;
+
+            contentArea.innerHTML = `
+                ${tabsHtml}
+                ${contentHtml}
+            `;
+            
+            destroyCharts();
+            setTimeout(() => {
+                if (topicData.chartData) {
+                    renderCharts(topicData.chartData);
+                }
+            }, 0);
+        }
+        
+        function renderCharts(chartData) {
+            if (activeTopic === 'gender-equality') {
+                if (document.getElementById('flfprChart')) {
+                    charts.flfpr = createLineChart('flfprChart', chartData.flfpr.labels, chartData.flfpr.data, 'FLFPR (%)');
+                }
+                if (document.getElementById('wprChart')) {
+                    charts.wpr = createLineChart('wprChart', chartData.wpr.labels, chartData.wpr.data, 'WPR (%)', 'rgba(251, 146, 60, 1)', 'rgba(251, 146, 60, 0.2)');
+                }
+                if (document.getElementById('politicalRepChart')) {
+                    charts.politicalRep = createBarChart('politicalRepChart', chartData.politicalRep.labels, chartData.politicalRep.data, 'Representation (%)');
+                }
+            } else if (activeTopic === 'water-crisis') {
+                if(document.getElementById('waterAvailabilityChart')) {
+                    charts.availability = createAreaChart('waterAvailabilityChart', chartData.availability.labels, chartData.availability.data, 'Cubic Meters per Capita');
+                }
+                if(document.getElementById('waterShareChart')) {
+                    charts.share = createDoughnutChart('waterShareChart', chartData.share.labels, chartData.share.data);
+                }
+            } else if (activeTopic === 'mental-health' && document.getElementById('treatmentGapChart')) {
+                charts.treatmentGap = createDoughnutChart('treatmentGapChart', chartData.treatmentGap.labels, chartData.treatmentGap.data);
+            } else if (activeTopic === 'happiness-report') {
+                if (document.getElementById('happinessRankingChart')) {
+                    charts.rankings = createHorizontalBarChart('happinessRankingChart', chartData.rankings.labels, chartData.rankings.data, 'Happiness Rank (Lower is better)');
+                }
+                if (document.getElementById('happinessFactorsChart')) {
+                    charts.factors = createRadarChart('happinessFactorsChart', chartData.factors.labels, chartData.factors.data, "India's Score (out of 10)");
+                }
+            }
+        }
+
+        function handleNavClick(topic) {
+            activeTopic = topic;
+            activeDimension = 'social';
+            document.querySelectorAll('#main-nav button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.topic === topic);
+            });
+            document.getElementById('mobile-nav').value = topic;
+            renderContent();
+        }
+
+        function handleTabClick(dimension) {
+            activeDimension = dimension;
+            renderContent();
+        }
+        
+        function createLineChart(canvasId, labels, data, label, color = 'rgba(192, 132, 252, 1)', bgColor = 'rgba(192, 132, 252, 0.2)') {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: bgColor,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        function createBarChart(canvasId, labels, data, label) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        backgroundColor: ['rgba(192, 132, 252, 0.6)', 'rgba(129, 140, 248, 0.6)', 'rgba(96, 165, 250, 0.6)'],
+                        borderColor: ['rgba(192, 132, 252, 1)', 'rgba(129, 140, 248, 1)', 'rgba(96, 165, 250, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+        
+        function createAreaChart(canvasId, labels, data, label) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        borderColor: 'rgba(96, 165, 250, 1)',
+                        backgroundColor: 'rgba(96, 165, 250, 0.2)',
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+        
+        function createDoughnutChart(canvasId, labels, data) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['rgba(192, 132, 252, 0.7)', 'rgba(236, 72, 153, 0.7)', 'rgba(229, 231, 235, 0.7)'],
+                        hoverOffset: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function createHorizontalBarChart(canvasId, labels, data, label) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        backgroundColor: 'rgba(251, 146, 60, 0.6)',
+                        borderColor: 'rgba(251, 146, 60, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { 
+                        x: { 
+                            beginAtZero: true,
+                            reverse: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '#' + value;
+                                }
+                            }
+                        } 
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Rank: ${context.raw}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createRadarChart(canvasId, labels, data, label) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        fill: true,
+                        backgroundColor: 'rgba(192, 132, 252, 0.2)',
+                        borderColor: 'rgb(192, 132, 252)',
+                        pointBackgroundColor: 'rgb(192, 132, 252)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(192, 132, 252)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: false
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 10
+                        }
+                    }
+                }
+            });
+        }
+
+        function init() {
+            const mainNav = document.getElementById('main-nav');
+            const mobileNav = document.getElementById('mobile-nav');
+            let mainNavHtml = '';
+            let mobileNavHtml = '';
+
+            Object.keys(appData).forEach((key, index) => {
+                const topic = appData[key];
+                const isActive = index === 0;
+                mainNavHtml += `<button data-topic="${key}" onclick="handleNavClick('${key}')" class="nav-button text-gray-600 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium ${isActive ? 'active' : ''}">${topic.title.split(':')[0]}</button>`;
+                mobileNavHtml += `<option value="${key}" ${isActive ? 'selected' : ''}>${topic.title.split(':')[0]}</option>`;
+            });
+
+            mainNav.innerHTML = mainNavHtml;
+            mobileNav.innerHTML = mobileNavHtml;
+
+            mobileNav.addEventListener('change', (e) => {
+                handleNavClick(e.target.value);
+            });
+
+            renderContent();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
